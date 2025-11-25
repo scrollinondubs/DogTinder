@@ -41,6 +41,20 @@ This project was created with Confabulator, an AI-powered project documentation 
    - Key partnerships
    - Customer relationships
 
+5. **UI Mockups** (`confabulator/mocks/`)
+   - Source of truth for all front-end UI screens
+   - Reference these mockups when building any UI components
+   - Available screens:
+     - `welcome-screen.png` - App entry/onboarding
+     - `login-screen.png` - Authentication screen
+     - `swipe-interface.png` - Core swiping feature
+     - `dog-profile-detail.png` - Expanded dog information
+     - `liked-dogs-list.png` - Saved favorites list
+     - `appointment-booking.png` - Calendar and time slot selection
+     - `appointment-conf.png` - Booking confirmation
+     - `message-chat.png` - Shelter communication
+     - `shelter-dashboard.png` - Admin view for shelters
+
 ## Tech Stack
 
 TypeScript, JavaScript, React, Express, shadcn/ui, Radix UI, React Hook Form, Zod, Firebase, Aws, DrizzleORM, Stripe, NextAuth.js, Vercel, Mongodb
@@ -53,6 +67,7 @@ When working on this project:
 2. **Follow the Plan**: The implementation plan outlines the recommended development sequence
 3. **Reference User Stories**: Each feature should map to user stories in the PRD
 4. **Maintain Alignment**: Technical decisions should align with the architecture in the implementation plan
+5. **Use UI Mockups**: When building front-end components, always reference the mockups in `confabulator/mocks/` as the source of truth for visual design, layout, and user flow
 
 ## Current Focus
 
