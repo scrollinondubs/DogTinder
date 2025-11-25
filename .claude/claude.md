@@ -57,7 +57,20 @@ This project was created with Confabulator, an AI-powered project documentation 
 
 ## Tech Stack
 
-TypeScript, JavaScript, React, Express, shadcn/ui, Radix UI, React Hook Form, Zod, Firebase, Aws, DrizzleORM, Stripe, NextAuth.js, Vercel, Mongodb
+| Category | Technology |
+|----------|------------|
+| Framework | Next.js 14+ (App Router) |
+| Language | TypeScript |
+| UI | shadcn/ui, Tailwind CSS |
+| State | TanStack Query, Zustand |
+| Forms | React Hook Form, Zod |
+| Auth | NextAuth.js v5 (Auth.js) |
+| Database | PostgreSQL |
+| ORM | Prisma |
+| File Storage | Cloudflare R2 |
+| Email | Resend |
+| Hosting | Vercel |
+| PWA | next-pwa |
 
 ## Development Guidelines
 
@@ -71,17 +84,27 @@ When working on this project:
 
 ## Current Focus
 
-The MVP focuses on these core capabilities:
+The MVP focuses on these core capabilities (P0 features):
 
-- Core features should include:
-- A swipe-like interface, similar to Tinder, so people can build a list of liked dogs.
-- Easy appointment booking to visit the animal, showing the next available time slot.
+1. **User Authentication** - Sign up/login with Google OAuth
+2. **Swipe Interface** - Tinder-like swiping to like/pass on dogs
+3. **Dog Profile Detail** - Expanded view with photos and info
+4. **Liked Dogs List** - View all right-swiped dogs
+5. **Shelter Admin Dashboard** - Add/edit/remove dogs
+6. **Simple Appointment Request** - Form submission with email notification
+7. **In-App Messaging** - Direct communication between users and shelters
+
+**Deferred to Post-MVP:**
+- Full calendar integration for appointments
+- Dog filtering (breed, size, age)
+- Push notifications (native)
+- Batch dog uploads
 
 See `confabulator/implementation-plan.md` for the complete development roadmap.
 
 ## Important Notes
 
-- This is a both application
+- This is a Progressive Web App (PWA) - installable on mobile devices
 - All generated documentation is in the `confabulator/` directory
 - The PRD contains the definitive feature requirements
 - The implementation plan provides the technical roadmap

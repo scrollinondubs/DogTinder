@@ -15,25 +15,29 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 
 ## Technical Architecture
 
-### Tech Stack Recommendations
-- **Frontend:** React Native
-  - *Rationale:* Provides cross-platform mobile support, ideal for both iOS and Android.
-- **Backend/API:** Node.js with Express
-  - *Rationale:* Efficient for handling RESTful APIs needed for this application, with broad community support.
-- **Database:** MongoDB
-  - *Rationale:* Flexible schema design suitable for handling diverse dog profile data.
-- **Authentication:** Firebase Authentication
-  - *Rationale:* Simplifies user authentication and security, providing a robust and scalable solution.
-- **Hosting/Deployment:** AWS (Amazon Web Services)
-  - *Rationale:* Scalable infrastructure with easy deployment solutions for mobile applications.
-- **Additional Services:**
-  - **Notifications:** Firebase Cloud Messaging for cross-platform notifications.
-  - **Calendar Integration:** Google Calendar API for appointment scheduling.
+### Tech Stack (Revised)
+
+| Layer | Technology | Rationale |
+|-------|------------|-----------|
+| **Framework** | Next.js 14+ (App Router) | Full-stack React framework with built-in API routes, PWA support |
+| **Language** | TypeScript | Type safety, better developer experience, fewer runtime errors |
+| **UI Components** | shadcn/ui + Tailwind CSS | Copy-paste components, highly customizable, consistent design |
+| **State Management** | TanStack Query + Zustand | Server state caching + minimal client state when needed |
+| **Forms** | React Hook Form + Zod | Performant forms with schema validation |
+| **Authentication** | NextAuth.js v5 (Auth.js) | Native Next.js integration, supports Google/email auth |
+| **Database** | PostgreSQL | Relational data model fits users/dogs/shelters relationships |
+| **ORM** | Prisma | Excellent TypeScript integration, type-safe queries |
+| **File Storage** | Cloudflare R2 | Cost-effective S3-compatible storage for dog images |
+| **Email** | Resend | Modern email API for appointment notifications |
+| **Hosting** | Vercel + managed PostgreSQL | Seamless Next.js deployment, managed database |
+| **PWA** | next-pwa | Adds offline capability and home screen installation |
 
 ### Architecture Patterns
-- RESTful API design for communication between frontend and backend.
-- State management using Redux for handling complex state across the application.
-- Use of server-side rendering where applicable to optimize initial app load times.
+- **Next.js App Router** with server components for optimal performance
+- **API Routes** for backend logic (no separate Express server needed)
+- **Server Actions** for form submissions and mutations
+- **React Query** for data fetching, caching, and optimistic updates
+- **Prisma** for type-safe database queries with automatic migrations
 
 ## User Stories
 
@@ -51,47 +55,55 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 
 **Estimated Complexity:** Medium
 
-### User Story 2: Appointment Booking System
-**Story:** As a user, I want to book appointments with shelters to meet dogs in person.
+### User Story 2: Appointment Request (Simplified)
+**Story:** As a user, I want to request an appointment with a shelter to meet a dog in person.
 
-**Priority:** P0
+**Priority:** P0 (simplified from full calendar integration)
 
 **Acceptance Criteria:**
-- [ ] Users can view available time slots for appointments.
-- [ ] Users receive confirmation of booked appointments.
-- [ ] Users can cancel or reschedule appointments.
+- [ ] Users can submit an appointment request form for a specific dog.
+- [ ] Users can specify preferred date/time and include a message.
+- [ ] Users receive email confirmation when request is submitted.
+- [ ] Shelters receive email notification of new requests.
+- [ ] Users can view their pending/confirmed requests.
 
 **Dependencies:** User Story 1
 
-**Estimated Complexity:** Medium
+**Estimated Complexity:** Small (reduced from Medium - no calendar integration)
 
 ### User Story 3: Shelter Communication
 **Story:** As a shelter employee, I want to communicate with potential adopters to answer their questions about the dogs.
 
-**Priority:** P1
+**Priority:** P0 (upgraded from P1)
 
 **Acceptance Criteria:**
-- [ ] Shelters can receive and respond to inquiries.
+- [ ] Users can initiate conversations from dog profiles.
+- [ ] Shelters can receive and respond to user messages.
 - [ ] Users can send questions directly to shelters.
-- [ ] Notification system for new messages.
+- [ ] Both parties receive notifications for new messages.
+- [ ] Message history is preserved and searchable.
 
-**Dependencies:** User Story 2
+**Dependencies:** User Story 1, User Story 4
 
-**Estimated Complexity:** Medium
+**Estimated Complexity:** Medium-Large
 
-### User Story 4: Quick Profile Creation for Shelters
-**Story:** As a shelter employee, I want to easily create dog profiles so that I can add them to the app quickly.
+### User Story 4: Shelter Dog Management
+**Story:** As a shelter employee, I want to easily create and manage dog profiles so that I can add them to the app quickly.
 
 **Priority:** P0
 
 **Acceptance Criteria:**
-- [ ] Shelters can upload photos and descriptions.
-- [ ] Shelters can update availability and adoption status.
-- [ ] System supports batch uploads of dog profiles.
+- [ ] Shelters can create dog profiles with photos and descriptions.
+- [ ] Shelters can update dog availability and adoption status.
+- [ ] Shelters can edit or remove existing dog profiles.
+- [ ] Image upload to cloud storage with optimization.
 
 **Dependencies:** None
 
-**Estimated Complexity:** Large
+**Estimated Complexity:** Medium
+
+**Deferred to Post-MVP:**
+- Batch upload functionality for dog profiles
 
 ## Development Epics
 
@@ -124,154 +136,316 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 
 **Estimated Effort:** 10 hours
 
-### Epic 2: Appointment Management
-**Goal:** Allow users to book and manage appointments with shelters.
+### Epic 2: Appointment Requests
+**Goal:** Allow users to request appointments with shelters (simplified approach).
 
 **User Stories Included:** US-2
 
 **Tasks:**
 
-#### Task 2.1: Integrate Calendar API
-**Description:** Implement Google Calendar API for booking appointments.
+#### Task 2.1: Build Appointment Request Form
+**Description:** Create a simple form for users to request shelter visits.
 
 **Acceptance Criteria:**
-- [ ] Integration with Google Calendar is functional.
-- [ ] Available slots are correctly displayed to users.
+- [ ] Form captures preferred date, time, and optional message.
+- [ ] Form validates input with Zod schema.
+- [ ] Submission creates AppointmentRequest in database.
 
 **Dependencies:** None
 
-**Estimated Effort:** 20 hours
+**Estimated Effort:** 8 hours
 
-#### Task 2.2: Develop Appointment Booking UI
-**Description:** Create a user interface for booking and managing appointments.
+#### Task 2.2: Implement Email Notifications
+**Description:** Set up email notifications for appointment requests.
 
 **Acceptance Criteria:**
-- [ ] Users can book, cancel, and reschedule appointments.
-- [ ] Users receive confirmation notifications.
+- [ ] User receives confirmation email on submission.
+- [ ] Shelter receives notification of new request.
+- [ ] Emails include dog details and user contact info.
 
 **Dependencies:** Task 2.1
 
-**Estimated Effort:** 24 hours
+**Estimated Effort:** 6 hours
+
+#### Task 2.3: Build User Appointments View
+**Description:** Create a page for users to view their appointment requests.
+
+**Acceptance Criteria:**
+- [ ] Users can see pending, confirmed, and past requests.
+- [ ] Status updates are reflected in real-time.
+
+**Dependencies:** Task 2.1
+
+**Estimated Effort:** 6 hours
 
 ### Epic 3: Shelter Communication
-**Goal:** Facilitate communication between adopters and shelters.
+**Goal:** Enable direct messaging between users and shelters to facilitate the adoption process.
 
 **User Stories Included:** US-3
 
 **Tasks:**
 
 #### Task 3.1: Implement Messaging System
-**Description:** Develop a messaging system for communication between users and shelters.
+**Description:** Build the core messaging infrastructure with database models, API routes, and chat UI.
 
 **Acceptance Criteria:**
-- [ ] Users can send and receive messages.
-- [ ] Notifications are triggered for new messages.
+- [ ] Conversation and Message models added to Prisma schema.
+- [ ] API routes for creating conversations and sending messages.
+- [ ] Chat UI with message bubbles and input field.
+- [ ] Real-time updates (polling or Pusher).
 
-**Dependencies:** None
+**Dependencies:** Epic 5 (Technical Foundation)
 
-**Estimated Effort:** 25 hours
+**Estimated Effort:** 20 hours
 
-### Epic 4: Shelter Profile Management
+#### Task 3.2: Build Conversation List
+**Description:** Create views for users and shelters to see their conversations.
+
+**Acceptance Criteria:**
+- [ ] User view: list of conversations with shelters.
+- [ ] Shelter view: list of conversations with users.
+- [ ] Last message preview and timestamp shown.
+- [ ] Unread message count badges.
+
+**Dependencies:** Task 3.1
+
+**Estimated Effort:** 8 hours
+
+#### Task 3.3: Implement Message Notifications
+**Description:** Add notifications for new messages.
+
+**Acceptance Criteria:**
+- [ ] In-app notification indicators for new messages.
+- [ ] Email fallback for offline users via Resend.
+- [ ] Mark as read functionality.
+
+**Dependencies:** Task 3.1
+
+**Estimated Effort:** 6 hours
+
+### Epic 4: Shelter Dog Management
 **Goal:** Enable shelters to create and manage dog profiles easily.
 
 **User Stories Included:** US-4
 
 **Tasks:**
 
-#### Task 4.1: Develop Profile Creation Interface
-**Description:** Create an interface for shelters to upload and manage dog profiles.
+#### Task 4.1: Build Shelter Dashboard
+**Description:** Create a dashboard for shelter admins to manage their dogs.
 
 **Acceptance Criteria:**
-- [ ] Shelters can add new profiles with complete details.
-- [ ] Batch upload functionality is available.
+- [ ] Dashboard shows list of shelter's dogs with status.
+- [ ] Quick actions for editing status (available/pending/adopted).
+- [ ] Links to add new dog or edit existing.
 
 **Dependencies:** None
 
-**Estimated Effort:** 30 hours
+**Estimated Effort:** 10 hours
+
+#### Task 4.2: Build Dog Profile Form
+**Description:** Create form for adding/editing dog profiles.
+
+**Acceptance Criteria:**
+- [ ] Form captures all dog fields (name, breed, age, size, description, etc.).
+- [ ] Image upload with drag-and-drop support.
+- [ ] Multiple images per dog with primary image selection.
+
+**Dependencies:** Task 4.1
+
+**Estimated Effort:** 12 hours
+
+#### Task 4.3: Implement Image Upload
+**Description:** Set up cloud storage for dog images.
+
+**Acceptance Criteria:**
+- [ ] Images uploaded to Cloudflare R2.
+- [ ] Images optimized/resized on upload.
+- [ ] Presigned URLs for secure uploads.
+
+**Dependencies:** None
+
+**Estimated Effort:** 8 hours
 
 ### Epic 5: Technical Foundation
 **Goal:** Establish technical infrastructure needed to support feature development
 
 **Tasks:**
-- **Project Initialization and Framework Setup:** Establish initial project structure using React Native and Node.js.
-- **Database Schema Design and Migrations:** Define database schema for dog profiles and user data.
-- **Authentication Implementation:** Set up Firebase Authentication for secure user login.
-- **Deployment Pipeline and Hosting Setup:** Configure AWS for hosting and continuous deployment.
-- **Basic Error Handling and Logging:** Implement error handling mechanisms and logging for the backend.
+
+#### Task 5.1: Project Initialization
+**Description:** Set up Next.js project with core dependencies.
+
+**Acceptance Criteria:**
+- [ ] Next.js 14+ with App Router and TypeScript.
+- [ ] Tailwind CSS and shadcn/ui configured.
+- [ ] ESLint and Prettier configured.
+- [ ] Git repository with proper .gitignore.
+
+**Estimated Effort:** 4 hours
+
+#### Task 5.2: Database Setup
+**Description:** Configure PostgreSQL with Prisma ORM.
+
+**Acceptance Criteria:**
+- [ ] Prisma schema with all models (User, Shelter, Dog, DogImage, Like, AppointmentRequest).
+- [ ] Database migrations working.
+- [ ] Seed script with sample data.
+
+**Estimated Effort:** 6 hours
+
+#### Task 5.3: Authentication Setup
+**Description:** Configure NextAuth.js for user authentication.
+
+**Acceptance Criteria:**
+- [ ] Google OAuth provider configured.
+- [ ] Email/password authentication (optional for MVP).
+- [ ] Database sessions with Prisma adapter.
+- [ ] Role-based access (USER, SHELTER_ADMIN, ADMIN).
+
+**Estimated Effort:** 8 hours
+
+#### Task 5.4: Deployment Pipeline
+**Description:** Set up Vercel deployment with preview environments.
+
+**Acceptance Criteria:**
+- [ ] Vercel project configured.
+- [ ] Preview deployments on PR.
+- [ ] Production deployment on main branch.
+- [ ] Environment variables configured.
+
+**Estimated Effort:** 4 hours
 
 ## Implementation Phases
 
-### Phase 1: Foundation & Core Features (Weeks 1-2)
-**Epics:** Epic 5, Epic 1
+### Phase 1: Foundation (Week 1)
+**Epics:** Epic 5
 
 **Key Deliverables:**
-- Basic app structure and user interface for swiping.
-- Backend setup with database and authentication.
+- Next.js project initialized with all core dependencies
+- Database schema created and migrations run
+- Authentication working with Google OAuth
+- Vercel deployment pipeline operational
+- Seed data script for development
 
 **Exit Criteria:**
-- [ ] Core swiping functionality implemented and tested.
+- [ ] Users can sign in with Google
+- [ ] Database schema deployed and seeded
+- [ ] App deployable to Vercel
 
-### Phase 2: Secondary Features & Integration (Weeks 3-4)
-**Epics:** Epic 2, Epic 3
+### Phase 2: Core User Experience (Week 2)
+**Epics:** Epic 1
 
 **Key Deliverables:**
-- Appointment booking system integrated and operational.
-- Messaging system developed for user-shelter communication.
+- Swipe interface component built and functional
+- Dog profile detail view
+- Liked dogs list page
+- User profile/settings page
 
 **Exit Criteria:**
-- [ ] Appointment booking and messaging features functional and tested.
+- [ ] Users can swipe through dogs
+- [ ] Likes are persisted to database
+- [ ] Users can view their liked dogs
 
-### Phase 3: Polish & Launch Prep (Week 5)
+### Phase 3: Shelter Admin (Week 3)
 **Epics:** Epic 4
 
 **Key Deliverables:**
-- Shelter profile management tools completed.
-- Final testing and bug fixes.
+- Shelter dashboard with dog list
+- Dog CRUD operations (create, edit, delete)
+- Image upload to Cloudflare R2
+- Dog status management
 
 **Exit Criteria:**
-- [ ] All features stable and app ready for launch.
+- [ ] Shelter admins can add/edit dogs
+- [ ] Images upload successfully
+- [ ] Status changes reflected in user-facing app
+
+### Phase 4: Appointments & Communication (Week 4)
+**Epics:** Epic 2, Epic 3
+
+**Key Deliverables:**
+- Appointment request form
+- Email notifications via Resend
+- Shelter appointment management view
+- In-app messaging system (user ↔ shelter)
+- Conversation list views
+- Message notifications
+- PWA configuration (manifest, service worker)
+
+**Exit Criteria:**
+- [ ] Users can request appointments
+- [ ] Emails sent to users and shelters
+- [ ] Users can message shelters from dog profiles
+- [ ] Shelters can respond to user messages
+- [ ] App installable as PWA
+
+### Phase 5: Testing & Launch (Week 5)
+**Key Deliverables:**
+- End-to-end testing of critical flows
+- Performance optimization
+- Error handling and edge cases
+- Documentation for shelter onboarding
+- Production deployment
+
+**Exit Criteria:**
+- [ ] All critical paths tested
+- [ ] Performance acceptable on mobile
+- [ ] Messaging works reliably
+- [ ] Ready for shelter onboarding
+
+**Deferred to Post-MVP:**
+- Batch dog uploads
+- Push notifications (using FCM)
+- Dog filtering (breed, size, age)
+- Full calendar integration
 
 ## Testing Strategy
 
 ### Unit Testing
-- Key components such as swipe actions, profile management, and appointment booking will be covered.
-- Jest and Enzyme for React Native components.
+- Key components (swipe card, forms, API handlers) tested with Vitest
+- Prisma queries tested with mock database
+- Zod schemas validated
 
 ### Integration Testing
-- Test integration with Google Calendar API.
-- Validate end-to-end user flows for swiping and booking.
+- API routes tested end-to-end
+- Authentication flows validated
+- Database operations verified
 
 ### User Acceptance Testing
-- Conduct testing with a group of potential adopters and shelter staff.
-- Success criteria: Positive feedback and smooth user experience.
+- Manual testing with shelter staff for admin flows
+- Mobile device testing for swipe interface
+- PWA installation testing on iOS and Android
 
 ## Deployment Plan
 
 ### Environments
-- **Development:** Local environment for initial development and testing.
-- **Staging:** AWS environment for pre-production testing and validation.
-- **Production:** AWS environment for live deployment.
+- **Development:** Local environment with local PostgreSQL or Supabase
+- **Preview:** Vercel preview deployments on each PR
+- **Production:** Vercel production environment
 
 ### Deployment Process
-1. Code pushed to repository triggers CI/CD pipeline.
-2. Automated tests run on staging before production deployment.
-3. Monitor application health post-deployment.
+1. Code pushed to repository triggers Vercel build
+2. Preview deployment created for PRs
+3. Merging to main triggers production deployment
+4. Database migrations run automatically via Prisma
 
 ### Rollback Plan
-- Maintain versioned backups of each deployment.
-- Roll back to the previous stable version if critical issues arise.
+- Vercel maintains deployment history for instant rollbacks
+- Database migrations are additive (avoid destructive changes)
+- Feature flags for gradual rollouts if needed
 
 ## Risk Assessment
 
 ### Technical Risks
-- **Risk 1:** Integration with third-party APIs (Google Calendar)
-  - *Mitigation:* Prototype integrations early and develop fallbacks.
-- **Risk 2:** Scalability issues with increasing users
-  - *Mitigation:* Use AWS scaling features and conduct load testing.
+- **Risk 1:** PWA feels less native than app
+  - *Mitigation:* Proper PWA manifest, smooth animations, touch gestures
+- **Risk 2:** Image upload performance
+  - *Mitigation:* Client-side compression, lazy loading, CDN caching
+- **Risk 3:** Swipe performance on older devices
+  - *Mitigation:* Virtualized list, preload next cards, optimize re-renders
 
 ### Feature Risks
-- **Risk 1:** Complexity of appointment booking
-  - *Mitigation:* Simplify the user interface and conduct extensive user testing.
+- **Risk 1:** Low shelter adoption
+  - *Mitigation:* White-glove onboarding for first 3 shelters, simple admin UI
 
 ## Success Metrics
 

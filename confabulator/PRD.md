@@ -2,9 +2,9 @@
 
 ## Document Information
 - Product Name: Dog Tinder
-- Version: 1.0
-- Last Updated: 2025-11-20
-- Status: Draft
+- Version: 1.1
+- Last Updated: 2025-11-25
+- Status: Revised (post-architectural review)
 
 ## Product Overview
 Dog Tinder is a mobile application designed to revolutionize the dog adoption process by offering a fun and engaging interface similar to the popular dating app, Tinder. Users can swipe through profiles of orphaned dogs, creating a personalized list of favorites, and easily book appointments to meet these dogs at participating shelters. This platform aims to address the critical issue of high euthanasia rates in shelters by expanding the market of potential adopters.
@@ -55,31 +55,46 @@ The application targets individuals with discretionary incomes who have the capa
   3. Users receive feedback on their swipe actions.
 - **Priority:** P0
 
-### Feature 2: Appointment Booking System
-- **Description:** Users can book appointments to meet dogs at the shelter.
-- **User Story:** As a user, I want to book appointments with shelters to meet dogs in person.
+### Feature 2: Appointment Request System (Simplified)
+- **Description:** Users can request appointments to meet dogs at the shelter via a simple form.
+- **User Story:** As a user, I want to request an appointment with a shelter to meet a dog in person.
 - **Acceptance Criteria:**
-  1. Users can view available time slots for appointments.
-  2. Users receive confirmation of booked appointments.
-  3. Users can cancel or reschedule appointments.
+  1. Users can submit an appointment request form with preferred date/time.
+  2. Users receive email confirmation when request is submitted.
+  3. Shelters receive email notification of new requests.
+  4. Users can view status of their requests (pending/confirmed/cancelled).
 - **Priority:** P0
+- **Note:** Full calendar integration with real-time availability deferred to post-MVP.
 
 ### Feature 3: Shelter Communication
-- **Description:** Facilitate communication between users and shelters.
+- **Description:** In-app messaging between users and shelters to facilitate the adoption process.
 - **User Story:** As a shelter employee, I want to communicate with potential adopters to answer their questions about the dogs.
 - **Acceptance Criteria:**
-  1. Shelters can receive and respond to inquiries.
-  2. Users can send questions directly to shelters.
-  3. Notification system for new messages.
-- **Priority:** P1
+  1. Users can initiate conversations from dog profile pages.
+  2. Shelters can receive and respond to user messages.
+  3. Users can send questions directly to shelters.
+  4. Both parties receive notifications for new messages.
+  5. Message history is preserved and viewable.
+- **Priority:** P0 (upgraded from P1)
 
-### Feature 4: Quick Profile Creation for Shelters
-- **Description:** Shelters can quickly create and manage dog profiles.
-- **User Story:** As a shelter employee, I want to easily create dog profiles so that I can add them to the app quickly.
+### Feature 4: Shelter Dog Management
+- **Description:** Shelters can create and manage dog profiles through an admin dashboard.
+- **User Story:** As a shelter employee, I want to easily create and manage dog profiles so that I can add them to the app quickly.
 - **Acceptance Criteria:**
-  1. Shelters can upload photos and descriptions.
-  2. Shelters can update availability and adoption status.
-  3. System supports batch uploads of dog profiles.
+  1. Shelters can create dog profiles with photos, descriptions, and details.
+  2. Shelters can update dog availability and adoption status.
+  3. Shelters can edit or remove existing dog profiles.
+  4. Images are uploaded to cloud storage with optimization.
+- **Priority:** P0
+- **Note:** Batch upload functionality deferred to post-MVP.
+
+### Feature 5: User Authentication
+- **Description:** Users can create accounts and sign in to the application.
+- **User Story:** As a user, I want to create an account so that my liked dogs and appointment requests are saved.
+- **Acceptance Criteria:**
+  1. Users can sign up/sign in with Google OAuth.
+  2. Users can view and edit their profile.
+  3. Shelter admins have a separate role with access to admin features.
 - **Priority:** P0
 
 ## User Flows
@@ -92,10 +107,14 @@ The application targets individuals with discretionary incomes who have the capa
 5. **Exit Point:** User receives a confirmation notification and exits the app.
 
 ## Technical Considerations
-- **Platform Requirements:** Development for both iOS and Android platforms.
-- **Integration Needs:** Integration with calendar APIs for booking functionality.
+- **Platform Requirements:** Progressive Web App (PWA) accessible on all devices; installable on iOS and Android home screens.
+- **Framework:** Next.js 14+ with App Router, TypeScript, and Prisma ORM.
+- **Database:** PostgreSQL for relational data (users, dogs, shelters, appointments).
+- **Authentication:** NextAuth.js v5 with Google OAuth.
+- **File Storage:** Cloudflare R2 for dog images.
+- **Hosting:** Vercel for application, managed PostgreSQL for database.
 - **Scalability Considerations:** Ability to scale to accommodate multiple shelters and a growing user base.
-- **Performance Requirements:** Ensure a seamless user experience with minimal loading times.
+- **Performance Requirements:** Ensure a seamless user experience with minimal loading times, especially for swipe animations.
 
 ## Success Criteria
 
@@ -105,9 +124,10 @@ The application targets individuals with discretionary incomes who have the capa
 - App stability and usability validated through user testing.
 
 ### Launch Readiness Checklist
-- App store approval for iOS and Android.
+- PWA installable on iOS and Android devices.
 - Marketing materials and campaigns ready.
 - Support channels established and tested.
+- At least 3 shelters onboarded with dog profiles.
 
 ### Key Metrics to Track Post-Launch
 - User engagement rates (daily active users).
@@ -118,7 +138,12 @@ The application targets individuals with discretionary incomes who have the capa
 - Social media integration features.
 - Advanced analytics dashboard for shelters.
 - Multi-language support beyond English.
-- In-app payment systems for donations or fees. 
+- In-app payment systems for donations or fees.
+- Full calendar integration with real-time availability slots.
+- Batch upload of dog profiles.
+- Push notifications (native).
+- Dog filtering by breed, size, or age.
+- Location-based dog matching (MVP launches in single city/region). 
 
 ---
 
