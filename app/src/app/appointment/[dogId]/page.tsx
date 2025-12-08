@@ -1,0 +1,216 @@
+"use client";
+
+import { use, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { dogs } from "@/data/dummy-data";
+import { Button } from "@/components/Button";
+import { cn } from "@/lib/utils";
+
+interface PageProps {
+  params: Promise<{ dogId: string }>;
+}
+
+const timeSlots = [
+  "9:00 AM",
+  "10:30 AM",
+  "12:00 PM",
+  "2:00 PM",
+  "3:30 PM",
+  "5:00 PM",
+];
+
+export default function AppointmentPage({ params }: PageProps) {
+  const { dogId } = use(params);
+  const router = useRouter();
+  const dog = dogs.find((d) => d.id === dogId) || dogs[0];
+
+  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 10)); // November 2025
+  const [selectedDate, setSelectedDate] = useState<number | null>(22);
+  const [selectedTime, setSelectedTime] = useState<string | null>("10:30 AM");
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    return { firstDay, daysInMonth };
+  };
+
+  const { firstDay, daysInMonth } = getDaysInMonth(currentMonth);
+  const monthName = currentMonth.toLocaleString("default", { month: "long" });
+  const year = currentMonth.getFullYear();
+
+  const handleConfirm = () => {
+    router.push(`/appointment/${dogId}/confirmation`);
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-white px-4 h-14 flex items-center border-b border-gray-100">
+        <Link
+          href={`/dog/${dog.id}`}
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
+        </Link>
+        <h1 className="flex-1 text-center text-lg font-semibold text-gray-800 pr-8">
+          Book Appointment
+        </h1>
+      </header>
+
+      <div className="px-4 py-4">
+        {/* Dog Info Card */}
+        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-6">
+          <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-[#E8D5C4]">
+            <Image
+              src={dog.imageUrl}
+              alt={dog.name}
+              fill
+              className="object-cover"
+              sizes="56px"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <DogIcon className="w-6 h-6 text-[#C4A98A] opacity-50" />
+            </div>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800">Meet {dog.name}</h3>
+            <p className="text-gray-500 text-sm">at {dog.shelter.name}</p>
+          </div>
+        </div>
+
+        {/* Calendar */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Select Date</h2>
+          <div className="border border-gray-200 rounded-xl p-4">
+            {/* Month Navigation */}
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() =>
+                  setCurrentMonth(
+                    new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
+                  )
+                }
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </button>
+              <span className="font-medium text-gray-800">
+                {monthName} {year}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentMonth(
+                    new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+                  )
+                }
+                className="p-1 hover:bg-gray-100 rounded"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Day Headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
+                <div
+                  key={i}
+                  className="text-center text-xs text-gray-400 font-medium py-1"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Days Grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: firstDay }).map((_, i) => (
+                <div key={`empty-${i}`} />
+              ))}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const isSelected = selectedDate === day;
+                const isPast = day < 8; // Simulate past days
+                return (
+                  <button
+                    key={day}
+                    onClick={() => !isPast && setSelectedDate(day)}
+                    disabled={isPast}
+                    className={cn(
+                      "aspect-square flex items-center justify-center text-sm rounded-full transition-colors",
+                      isSelected
+                        ? "bg-primary text-white"
+                        : isPast
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-600 hover:bg-gray-100"
+                    )}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Time Slots */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Select Time</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {timeSlots.map((time) => (
+              <button
+                key={time}
+                onClick={() => setSelectedTime(time)}
+                className={cn(
+                  "py-3 rounded-lg text-sm font-medium transition-colors border",
+                  selectedTime === time
+                    ? "bg-primary text-white border-primary"
+                    : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300"
+                )}
+              >
+                {time}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Selected Summary */}
+        {selectedDate && selectedTime && (
+          <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-xl mb-6 border border-primary/20">
+            <Calendar className="w-5 h-5 text-primary" />
+            <span className="text-primary font-medium">
+              Selected: {monthName} {selectedDate}, {year} at {selectedTime}
+            </span>
+          </div>
+        )}
+
+        {/* Confirm Button */}
+        <Button
+          fullWidth
+          size="lg"
+          onClick={handleConfirm}
+          disabled={!selectedDate || !selectedTime}
+        >
+          Confirm Appointment
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function DogIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" fill="currentColor" className={className}>
+      <circle cx="24" cy="20" r="4" />
+      <circle cx="40" cy="20" r="4" />
+      <ellipse cx="32" cy="38" rx="12" ry="10" />
+      <circle cx="28" cy="36" r="2" fill="white" />
+      <circle cx="36" cy="36" r="2" fill="white" />
+      <ellipse cx="32" cy="42" rx="3" ry="2" />
+    </svg>
+  );
+}
