@@ -1,11 +1,28 @@
 "use client";
 
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Heart, MapPin } from "lucide-react";
-import { dogs } from "@/data/dummy-data";
+import { ArrowLeft, Heart, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/Button";
+
+interface Dog {
+  id: string;
+  name: string;
+  age: number;
+  breed: string;
+  gender: "Male" | "Female";
+  description: string;
+  imageUrl: string;
+  shelter: {
+    id: string;
+    name: string;
+    address: string;
+    distance: string;
+    imageUrl: string;
+  };
+  status: "available" | "pending" | "adopted";
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -13,7 +30,56 @@ interface PageProps {
 
 export default function DogDetailPage({ params }: PageProps) {
   const { id } = use(params);
-  const dog = dogs.find((d) => d.id === id) || dogs[0];
+  const [dog, setDog] = useState<Dog | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchDog() {
+      try {
+        const response = await fetch(`/api/dogs/${id}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError("Dog not found");
+          } else {
+            throw new Error("Failed to fetch dog");
+          }
+          return;
+        }
+        const data = await response.json();
+        setDog(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchDog();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+        <p className="text-gray-500 mt-4">Loading dog profile...</p>
+      </div>
+    );
+  }
+
+  if (error || !dog) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
+        <DogIcon className="w-20 h-20 text-gray-300" />
+        <p className="text-gray-500 mt-4">{error || "Dog not found"}</p>
+        <Link
+          href="/swipe"
+          className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+        >
+          Back to Swipe
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">

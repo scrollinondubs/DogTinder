@@ -1,26 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Settings, LogOut, Heart, Calendar, MessageCircle, ChevronRight, Bell, Shield, HelpCircle } from "lucide-react";
 import { Button } from "@/components/Button";
-
-// Dummy user data
-const user = {
-  name: "Alex Johnson",
-  email: "alex.johnson@email.com",
-  imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
-  joinedDate: "November 2024",
-  stats: {
-    liked: 12,
-    appointments: 3,
-    messages: 5,
-  },
-};
+import { signOut, useSession } from "next-auth/react";
 
 export default function ProfilePage() {
+  const { data: session } = useSession();
   const [notifications, setNotifications] = useState(true);
+
+  const user = {
+    name: session?.user?.name || "User",
+    email: session?.user?.email || "",
+    imageUrl: session?.user?.image || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
+    joinedDate: "November 2024",
+    stats: {
+      liked: 0,
+      appointments: 0,
+      messages: 0,
+    },
+  };
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/login" });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -166,12 +171,15 @@ export default function ProfilePage() {
 
       {/* Logout Button */}
       <div className="px-6 py-4">
-        <Link href="/login">
-          <Button variant="outline" fullWidth className="text-red-500 border-red-200 hover:bg-red-50">
-            <LogOut className="w-5 h-5 mr-2" />
-            Sign Out
-          </Button>
-        </Link>
+        <Button
+          variant="outline"
+          fullWidth
+          className="text-red-500 border-red-200 hover:bg-red-50"
+          onClick={handleSignOut}
+        >
+          <LogOut className="w-5 h-5 mr-2" />
+          Sign Out
+        </Button>
       </div>
 
       {/* App Version */}
