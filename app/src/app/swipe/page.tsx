@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { X, Heart, User, Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
-import { cn } from "@/lib/utils";
+import { SwipeCard, SwipeCardHandle } from "@/components/SwipeCard";
 
 interface Dog {
   id: string;
@@ -28,9 +28,9 @@ interface Dog {
 export default function SwipePage() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const cardRef = useRef<SwipeCardHandle>(null);
 
   const fetchDogs = useCallback(async () => {
     try {
@@ -61,11 +61,10 @@ export default function SwipePage() {
   }, [fetchDogs]);
 
   const currentDog = dogs[currentIndex];
+  const nextDog = dogs[currentIndex + 1];
 
   const handleSwipe = async (direction: "left" | "right") => {
     if (!currentDog) return;
-
-    setSwipeDirection(direction);
 
     // Save the swipe to the backend
     try {
@@ -81,10 +80,13 @@ export default function SwipePage() {
       console.error("Failed to save swipe:", err);
     }
 
-    setTimeout(() => {
-      setSwipeDirection(null);
-      setCurrentIndex((prev) => prev + 1);
-    }, 300);
+    // Move to next card
+    setCurrentIndex((prev) => prev + 1);
+  };
+
+  // Button handlers that trigger programmatic swipes
+  const handleButtonSwipe = (direction: "left" | "right") => {
+    cardRef.current?.swipe(direction);
   };
 
   return (
@@ -138,56 +140,40 @@ export default function SwipePage() {
           </div>
         ) : (
           <>
-            <div
-              className={cn(
-                "relative bg-white rounded-2xl overflow-hidden shadow-lg transition-all duration-300 ease-out",
-                swipeDirection === "left" && "-translate-x-[120%] rotate-[-20deg] opacity-0",
-                swipeDirection === "right" && "translate-x-[120%] rotate-[20deg] opacity-0"
+            {/* Card Stack Container - height needs to fit image (3:4 aspect) + info section (~130px) */}
+            <div className="relative" style={{ height: "calc((100vw - 32px) * 4 / 3 + 130px)", maxHeight: "680px" }}>
+              {/* Next card (background) - rendered first, behind the current card */}
+              {nextDog && (
+                <SwipeCard
+                  key={`next-${nextDog.id}`}
+                  dog={nextDog}
+                  onSwipe={() => {}}
+                  active={false}
+                />
               )}
-            >
-              {/* Image */}
-              <Link href={`/dog/${currentDog.id}`}>
-                <div className="relative w-full aspect-[3/4] bg-[#E8D5C4]">
-                  <Image
-                    src={currentDog.imageUrl}
-                    alt={currentDog.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 430px) 100vw, 430px"
-                    priority
-                  />
-                  {/* Dog icon placeholder */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <DogIcon className="w-20 h-20 text-[#C4A98A] opacity-40" />
-                  </div>
-                </div>
-              </Link>
 
-              {/* Info */}
-              <div className="p-4">
-                <h3 className="text-2xl font-bold text-gray-800">
-                  {currentDog.name}, {currentDog.age} yrs
-                </h3>
-                <p className="text-gray-600 font-medium">{currentDog.breed}</p>
-                <p className="text-gray-400 text-sm mt-1">
-                  {currentDog.shelter.name} • {currentDog.shelter.distance}
-                </p>
-                <p className="text-gray-500 text-sm mt-2 line-clamp-2">
-                  {currentDog.description.split(".")[0]}.
-                </p>
-              </div>
+              {/* Current card (foreground) - rendered last, on top */}
+              <AnimatePresence mode="wait">
+                <SwipeCard
+                  key={currentDog.id}
+                  ref={cardRef}
+                  dog={currentDog}
+                  onSwipe={handleSwipe}
+                  active={true}
+                />
+              </AnimatePresence>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-center gap-8 mt-6">
+            <div className="flex justify-center gap-8 mt-4">
               <button
-                onClick={() => handleSwipe("left")}
+                onClick={() => handleButtonSwipe("left")}
                 className="w-16 h-16 rounded-full border-2 border-red-300 flex items-center justify-center text-red-400 hover:bg-red-50 transition-colors"
               >
                 <X className="w-8 h-8" />
               </button>
               <button
-                onClick={() => handleSwipe("right")}
+                onClick={() => handleButtonSwipe("right")}
                 className="w-16 h-16 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors"
               >
                 <Heart className="w-8 h-8" />
