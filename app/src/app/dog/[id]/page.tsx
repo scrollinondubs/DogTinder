@@ -1,8 +1,9 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ArrowLeft, Heart, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/Button";
 
@@ -24,12 +25,9 @@ interface Dog {
   status: "available" | "pending" | "adopted";
 }
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function DogDetailPage({ params }: PageProps) {
-  const { id } = use(params);
+export default function DogDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
   const [dog, setDog] = useState<Dog | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

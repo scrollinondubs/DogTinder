@@ -1,18 +1,89 @@
 "use client";
 
-import { use } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Check, Calendar, MapPin, ExternalLink } from "lucide-react";
-import { dogs } from "@/data/dummy-data";
+import { useSearchParams } from "next/navigation";
+import { Check, Calendar, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/Button";
 
-interface PageProps {
-  params: Promise<{ dogId: string }>;
+interface Appointment {
+  id: string;
+  preferredDate: string;
+  preferredTime: string;
+  status: string;
+  dog: {
+    id: string;
+    name: string;
+    breed: string;
+    age: number;
+    gender: string;
+  };
+  shelter: {
+    id: string;
+    name: string;
+    address: string;
+    phone: string | null;
+  };
 }
 
-export default function ConfirmationPage({ params }: PageProps) {
-  const { dogId } = use(params);
-  const dog = dogs.find((d) => d.id === dogId) || dogs[0];
+function formatDateForDisplay(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export default function ConfirmationPage() {
+  const searchParams = useSearchParams();
+  const appointmentId = searchParams.get("id");
+
+  const [appointment, setAppointment] = useState<Appointment | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchAppointment() {
+      if (!appointmentId) {
+        setError("No appointment ID provided");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/appointments/${appointmentId}`);
+        if (!response.ok) {
+          throw new Error("Appointment not found");
+        }
+        const data = await response.json();
+        setAppointment(data.appointment);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load appointment");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchAppointment();
+  }, [appointmentId]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !appointment) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <p className="text-red-500 mb-4">{error || "Appointment not found"}</p>
+        <Link href="/swipe">
+          <Button>Back to Home</Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center px-6 py-12">
@@ -23,9 +94,13 @@ export default function ConfirmationPage({ params }: PageProps) {
 
       {/* Title */}
       <h1 className="text-2xl font-bold text-gray-800 mb-2">
-        Appointment Booked!
+        Appointment Requested!
       </h1>
-      <p className="text-gray-500 mb-8">You&apos;re all set to meet {dog.name}</p>
+      <p className="text-gray-500 mb-8 text-center">
+        Your request to meet {appointment.dog.name} has been submitted.
+        <br />
+        The shelter will confirm your appointment soon.
+      </p>
 
       {/* Details Card */}
       <div className="w-full bg-gray-50 rounded-2xl p-5 mb-8">
@@ -35,8 +110,11 @@ export default function ConfirmationPage({ params }: PageProps) {
             <Calendar className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-sm text-gray-500">Date & Time</p>
-            <p className="font-semibold text-gray-800">Nov 22, 2025 at 10:30 AM</p>
+            <p className="text-sm text-gray-500">Requested Date & Time</p>
+            <p className="font-semibold text-gray-800">
+              {formatDateForDisplay(appointment.preferredDate)} at{" "}
+              {appointment.preferredTime}
+            </p>
           </div>
         </div>
 
@@ -47,8 +125,8 @@ export default function ConfirmationPage({ params }: PageProps) {
           </div>
           <div>
             <p className="text-sm text-gray-500">Location</p>
-            <p className="font-semibold text-gray-800">{dog.shelter.name}</p>
-            <p className="text-sm text-gray-500">{dog.shelter.address}</p>
+            <p className="font-semibold text-gray-800">{appointment.shelter.name}</p>
+            <p className="text-sm text-gray-500">{appointment.shelter.address}</p>
           </div>
         </div>
 
@@ -60,29 +138,34 @@ export default function ConfirmationPage({ params }: PageProps) {
           <div>
             <p className="text-sm text-gray-500">Dog</p>
             <p className="font-semibold text-gray-800">
-              {dog.name} - {dog.breed}
+              {appointment.dog.name} - {appointment.dog.breed}
             </p>
           </div>
         </div>
       </div>
 
+      {/* Status Badge */}
+      <div className="w-full mb-6">
+        <div className="flex items-center justify-center gap-2 py-2 px-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="w-2 h-2 rounded-full bg-yellow-500" />
+          <span className="text-sm text-yellow-700 font-medium">
+            Status: Pending Confirmation
+          </span>
+        </div>
+      </div>
+
       {/* Action Buttons */}
       <div className="w-full space-y-3">
-        <Button fullWidth size="lg">
-          <Calendar className="w-5 h-5 mr-2" />
-          Add to Calendar
-        </Button>
-        <div className="flex gap-3">
-          <Button variant="outline" fullWidth size="lg">
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Get Directions
+        <Link href="/appointments" className="block">
+          <Button fullWidth size="lg">
+            View My Appointments
           </Button>
-          <Link href="/swipe" className="flex-1">
-            <Button variant="outline" fullWidth size="lg">
-              Back to Home
-            </Button>
-          </Link>
-        </div>
+        </Link>
+        <Link href="/swipe" className="block">
+          <Button variant="outline" fullWidth size="lg">
+            Back to Home
+          </Button>
+        </Link>
       </div>
     </div>
   );

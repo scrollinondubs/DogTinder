@@ -1,18 +1,16 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ArrowLeft, Send } from "lucide-react";
 import { conversations } from "@/data/dummy-data";
 import { cn } from "@/lib/utils";
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function ChatPage({ params }: PageProps) {
-  const { id } = use(params);
+export default function ChatPage() {
+  const params = useParams();
+  const id = params.id as string;
   const conversation = conversations.find((c) => c.id === id) || conversations[0];
   const [newMessage, setNewMessage] = useState("");
 
