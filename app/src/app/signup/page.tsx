@@ -7,19 +7,48 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 
-export default function LoginPage() {
+export default function SignUpPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      // Create account
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to create account");
+        return;
+      }
+
+      // Auto sign in after successful registration
       const result = await signIn("credentials", {
         email,
         password,
@@ -27,7 +56,8 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        // Account created but sign in failed - redirect to login
+        router.push("/login");
       } else {
         router.push("/swipe");
         router.refresh();
@@ -44,8 +74,8 @@ export default function LoginPage() {
       {/* Logo */}
       <div className="text-center mb-8">
         <PawPrint className="w-12 h-12 text-primary mx-auto mb-4" />
-        <h1 className="text-3xl font-bold text-gray-800">Welcome Back!</h1>
-        <p className="text-gray-500 mt-1">Sign in to continue</p>
+        <h1 className="text-3xl font-bold text-gray-800">Create Account</h1>
+        <p className="text-gray-500 mt-1">Join Dog Tinder today</p>
       </div>
 
       {/* Error Message */}
@@ -55,8 +85,15 @@ export default function LoginPage() {
         </div>
       )}
 
-      {/* Login Form */}
+      {/* Sign Up Form */}
       <form onSubmit={handleSubmit} className="space-y-4 flex-1">
+        <Input
+          label="Name"
+          type="text"
+          placeholder="Enter your name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <Input
           label="Email"
           type="email"
@@ -68,20 +105,19 @@ export default function LoginPage() {
         <Input
           label="Password"
           type="password"
-          placeholder="Enter your password"
+          placeholder="Create a password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-
-        <div className="text-right">
-          <Link
-            href="/forgot-password"
-            className="text-sm text-primary hover:underline"
-          >
-            Forgot Password?
-          </Link>
-        </div>
+        <Input
+          label="Confirm Password"
+          type="password"
+          placeholder="Confirm your password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
 
         <Button
           type="submit"
@@ -90,25 +126,17 @@ export default function LoginPage() {
           className="mt-6"
           disabled={isLoading}
         >
-          {isLoading ? "Signing in..." : "Sign In"}
+          {isLoading ? "Creating account..." : "Sign Up"}
         </Button>
       </form>
 
-      {/* Sign Up Link */}
+      {/* Sign In Link */}
       <p className="text-center mt-8 text-gray-500">
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-primary font-medium hover:underline">
-          Sign Up
+        Already have an account?{" "}
+        <Link href="/login" className="text-primary font-medium hover:underline">
+          Sign In
         </Link>
       </p>
-
-      {/* Demo Credentials */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <p className="text-xs text-gray-500 text-center mb-2">Demo credentials:</p>
-        <p className="text-xs text-gray-600 text-center">
-          alex@example.com / password123
-        </p>
-      </div>
     </div>
   );
 }

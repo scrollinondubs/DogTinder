@@ -24,12 +24,12 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 | **UI Components** | shadcn/ui + Tailwind CSS | Copy-paste components, highly customizable, consistent design |
 | **State Management** | TanStack Query + Zustand | Server state caching + minimal client state when needed |
 | **Forms** | React Hook Form + Zod | Performant forms with schema validation |
-| **Authentication** | NextAuth.js v5 (Auth.js) | Native Next.js integration, supports Google/email auth |
-| **Database** | PostgreSQL | Relational data model fits users/dogs/shelters relationships |
-| **ORM** | Prisma | Excellent TypeScript integration, type-safe queries |
+| **Authentication** | NextAuth.js v5 (Auth.js) | Native Next.js integration, email/password credentials |
+| **Database** | SQLite (dev) / Turso (prod) | Simple local dev, edge-ready production with libSQL |
+| **ORM** | Drizzle ORM | Lightweight, type-safe, native Turso/libSQL support |
 | **File Storage** | Cloudflare R2 | Cost-effective S3-compatible storage for dog images |
 | **Email** | Resend | Modern email API for appointment notifications |
-| **Hosting** | Vercel + managed PostgreSQL | Seamless Next.js deployment, managed database |
+| **Hosting** | Vercel + Turso | Seamless Next.js deployment, edge-ready database |
 | **PWA** | next-pwa | Adds offline capability and home screen installation |
 
 ### Architecture Patterns
@@ -37,7 +37,7 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 - **API Routes** for backend logic (no separate Express server needed)
 - **Server Actions** for form submissions and mutations
 - **React Query** for data fetching, caching, and optimistic updates
-- **Prisma** for type-safe database queries with automatic migrations
+- **Drizzle ORM** for type-safe database queries with migrations
 
 ## User Stories
 
@@ -189,7 +189,7 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 **Description:** Build the core messaging infrastructure with database models, API routes, and chat UI.
 
 **Acceptance Criteria:**
-- [ ] Conversation and Message models added to Prisma schema.
+- [ ] Conversation and Message models added to Drizzle schema.
 - [ ] API routes for creating conversations and sending messages.
 - [ ] Chat UI with message bubbles and input field.
 - [ ] Real-time updates (polling or Pusher).
@@ -283,23 +283,25 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 **Estimated Effort:** 4 hours
 
 #### Task 5.2: Database Setup
-**Description:** Configure PostgreSQL with Prisma ORM.
+**Description:** Configure SQLite (local) / Turso (production) with Drizzle ORM.
 
 **Acceptance Criteria:**
-- [ ] Prisma schema with all models (User, Shelter, Dog, DogImage, Like, AppointmentRequest).
-- [ ] Database migrations working.
+- [ ] Drizzle schema with all models (User, Shelter, Dog, DogImage, Like, AppointmentRequest, Conversation, Message).
+- [ ] Database migrations working with drizzle-kit.
 - [ ] Seed script with sample data.
+- [ ] Turso database configured for production.
 
 **Estimated Effort:** 6 hours
 
 #### Task 5.3: Authentication Setup
-**Description:** Configure NextAuth.js for user authentication.
+**Description:** Configure NextAuth.js for user authentication with email/password.
 
 **Acceptance Criteria:**
-- [ ] Google OAuth provider configured.
-- [ ] Email/password authentication (optional for MVP).
-- [ ] Database sessions with Prisma adapter.
+- [ ] Credentials provider (email/password) configured.
+- [ ] Password hashing with bcryptjs.
+- [ ] Database sessions with Drizzle adapter.
 - [ ] Role-based access (USER, SHELTER_ADMIN, ADMIN).
+- [ ] Sign up and login pages functional.
 
 **Estimated Effort:** 8 hours
 
@@ -321,13 +323,13 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 
 **Key Deliverables:**
 - Next.js project initialized with all core dependencies
-- Database schema created and migrations run
-- Authentication working with Google OAuth
+- Database schema created with Drizzle and migrations run
+- Authentication working with email/password
 - Vercel deployment pipeline operational
 - Seed data script for development
 
 **Exit Criteria:**
-- [ ] Users can sign in with Google
+- [ ] Users can sign up and sign in with email/password
 - [ ] Database schema deployed and seeded
 - [ ] App deployable to Vercel
 
@@ -402,7 +404,7 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 
 ### Unit Testing
 - Key components (swipe card, forms, API handlers) tested with Vitest
-- Prisma queries tested with mock database
+- Drizzle queries tested with mock database
 - Zod schemas validated
 
 ### Integration Testing
@@ -418,15 +420,15 @@ The MVP includes critical features such as a swipe interface for browsing dog pr
 ## Deployment Plan
 
 ### Environments
-- **Development:** Local environment with local PostgreSQL or Supabase
-- **Preview:** Vercel preview deployments on each PR
-- **Production:** Vercel production environment
+- **Development:** Local environment with SQLite database (local.db)
+- **Preview:** Vercel preview deployments with Turso database
+- **Production:** Vercel production environment with Turso
 
 ### Deployment Process
 1. Code pushed to repository triggers Vercel build
 2. Preview deployment created for PRs
 3. Merging to main triggers production deployment
-4. Database migrations run automatically via Prisma
+4. Database migrations run via drizzle-kit push
 
 ### Rollback Plan
 - Vercel maintains deployment history for instant rollbacks

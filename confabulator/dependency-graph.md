@@ -92,8 +92,8 @@ gantt
 
 This is the foundation that everything else builds upon:
 - Next.js project setup
-- PostgreSQL + Prisma database
-- NextAuth.js authentication
+- SQLite (dev) / Turso (prod) + Drizzle ORM database
+- NextAuth.js authentication (email/password)
 - Vercel deployment
 
 ### Epic #1: User Interaction
