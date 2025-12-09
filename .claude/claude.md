@@ -65,12 +65,41 @@ This project was created with Confabulator, an AI-powered project documentation 
 | State | TanStack Query, Zustand |
 | Forms | React Hook Form, Zod |
 | Auth | NextAuth.js v5 (Auth.js) |
-| Database | PostgreSQL |
-| ORM | Prisma |
-| File Storage | Cloudflare R2 |
+| Database | SQLite (local) / Turso (production) |
+| ORM | Drizzle ORM |
+| File Storage | Vercel Blob |
 | Email | Resend |
 | Hosting | Vercel |
 | PWA | next-pwa |
+
+## Database
+
+### Local Development
+- **Database file:** `app/local.db` (SQLite)
+- **Interact via:** `sqlite3 app/local.db` or Drizzle queries
+- **Always use local database** for development and testing
+
+### Production (Turso)
+- **Database:** `dog-tinder` on Turso
+- **URL:** `libsql://dog-tinder-scrollinondubs.aws-eu-west-1.turso.io`
+- **Interact via:** `turso db shell dog-tinder`
+- **Only use production database** when explicitly needed for production debugging
+
+### Database Connection
+The `app/src/db/index.ts` automatically selects the database:
+- If `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are set → Turso (production)
+- Otherwise → `file:local.db` (local development)
+
+### Common Commands
+```bash
+# Local database
+sqlite3 app/local.db ".tables"
+sqlite3 app/local.db "SELECT * FROM dogs;"
+
+# Production database (use sparingly)
+turso db shell dog-tinder ".tables"
+turso db shell dog-tinder "SELECT * FROM dogs;"
+```
 
 ## Development Guidelines
 
