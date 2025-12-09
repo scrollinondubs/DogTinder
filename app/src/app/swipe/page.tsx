@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { X, Heart, User, Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { SwipeCard, SwipeCardHandle } from "@/components/SwipeCard";
@@ -93,9 +94,15 @@ export default function SwipePage() {
     <div className="min-h-screen bg-white pb-20">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white px-4 h-14 flex items-center justify-between border-b border-gray-100">
-        <Link href="/swipe" className="flex items-center gap-2">
-          <PawPrint className="w-6 h-6 text-primary" />
-          <span className="text-lg font-semibold text-primary">Dog Tinder</span>
+        <Link href="/swipe" className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="SwipeDog"
+            width={140}
+            height={40}
+            className="h-8 w-auto"
+            priority
+          />
         </Link>
         <Link
           href="/profile"
@@ -185,18 +192,6 @@ export default function SwipePage() {
 
       <BottomNav />
     </div>
-  );
-}
-
-function PawPrint({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 64 64" fill="currentColor" className={className}>
-      <ellipse cx="32" cy="44" rx="14" ry="12" />
-      <circle cx="20" cy="28" r="6" />
-      <circle cx="44" cy="28" r="6" />
-      <circle cx="14" cy="38" r="5" />
-      <circle cx="50" cy="38" r="5" />
-    </svg>
   );
 }
 

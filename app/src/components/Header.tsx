@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,9 +39,15 @@ export function Header({
           </Link>
         )}
         {showLogo && (
-          <Link href="/swipe" className="flex items-center gap-2">
-            <PawIcon className="w-6 h-6 text-primary" />
-            <span className="text-lg font-semibold text-primary">Dog Tinder</span>
+          <Link href="/swipe" className="flex items-center">
+            <Image
+              src="/logo.png"
+              alt="SwipeDog"
+              width={140}
+              height={40}
+              className="h-8 w-auto"
+              priority
+            />
           </Link>
         )}
         {title && !showLogo && (
@@ -56,17 +63,5 @@ export function Header({
         </Link>
       )}
     </header>
-  );
-}
-
-function PawIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
-      <path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-8 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 8c2.21 0 4-1.79 4-4h-8c0 2.21 1.79 4 4 4z" />
-    </svg>
   );
 }

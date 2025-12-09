@@ -101,6 +101,18 @@ turso db shell dog-tinder ".tables"
 turso db shell dog-tinder "SELECT * FROM dogs;"
 ```
 
+## Environment Variables
+
+When adding secrets to Vercel or other services via CLI, use `printf` instead of `echo` to avoid trailing newline characters:
+
+```bash
+# CORRECT - use printf (no trailing newline)
+printf "your-secret-value" | vercel env add SECRET_NAME production
+
+# WRONG - echo adds a trailing newline that breaks URLs and tokens
+echo "your-secret-value" | vercel env add SECRET_NAME production
+```
+
 ## Development Guidelines
 
 When working on this project:
