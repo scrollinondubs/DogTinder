@@ -1,5 +1,6 @@
 import { db } from "./index";
 import { users, shelters, dogs, dogImages, likes, conversations, messages } from "./schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 async function seed() {
@@ -71,6 +72,12 @@ async function seed() {
   }).returning();
 
   console.log("Created shelters:", shelter1.name, shelter2.name, shelter3.name);
+
+  // Link shelter admin to their shelter
+  await db.update(users)
+    .set({ shelterId: shelter1.id })
+    .where(eq(users.id, shelterAdmin.id));
+  console.log("Linked shelter admin to Happy Paws Shelter");
 
   // Create dogs
   const dogsData = [

@@ -65,18 +65,18 @@ gantt
 
 ## Active Issues (MVP)
 
-| Issue | Type | Title | Phase |
-|-------|------|-------|-------|
-| #11 | Epic | Technical Foundation | Week 1 |
-| #1 | Epic | User Interaction | Week 2 |
-| #2 | Task | Implement Swipe Functionality | Week 2 |
-| #3 | Task | Develop Liked Profiles List | Week 2 |
-| #9 | Epic | Shelter Dog Management | Week 3 |
-| #10 | Task | Build Shelter Dashboard | Week 3 |
-| #4 | Epic | Appointment Requests (Simplified) | Week 4 |
-| #6 | Task | Build Appointment Request Form | Week 4 |
-| #7 | Epic | Shelter Communication | Week 4 |
-| #8 | Task | Implement Messaging System | Week 4 |
+| Issue | Type | Title | Phase | Status |
+|-------|------|-------|-------|--------|
+| #11 | Epic | Technical Foundation | Week 1 | ✅ Closed |
+| #1 | Epic | User Interaction | Week 2 | ✅ Closed |
+| #2 | Task | Implement Swipe Functionality | Week 2 | ✅ Closed |
+| #3 | Task | Develop Liked Profiles List | Week 2 | ✅ Closed |
+| #9 | Epic | Shelter Dog Management | Week 3 | ✅ Closed |
+| #10 | Task | Build Shelter Dashboard | Week 3 | ✅ Closed |
+| #4 | Epic | Appointment Requests (Simplified) | Week 4 | 🔴 Open |
+| #6 | Task | Build Appointment Request Form | Week 4 | 🔴 Open |
+| #7 | Epic | Shelter Communication | Week 4 | 🔴 Open |
+| #8 | Task | Implement Messaging System | Week 4 | 🔴 Open |
 
 ## Closed Issues (Deferred to Post-MVP)
 

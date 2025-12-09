@@ -12,6 +12,7 @@ export const users = sqliteTable("users", {
   name: text("name"),
   image: text("image"),
   role: text("role", { enum: ["USER", "SHELTER_ADMIN", "ADMIN"] }).default("USER").notNull(),
+  shelterId: text("shelter_id"), // Links SHELTER_ADMIN to their shelter (added later due to circular ref)
   emailVerified: integer("email_verified", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
@@ -113,11 +114,15 @@ export const messages = sqliteTable("messages", {
 // Relations
 // ============================================
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   likes: many(likes),
   appointmentRequests: many(appointmentRequests),
   conversations: many(conversations),
+  shelter: one(shelters, {
+    fields: [users.shelterId],
+    references: [shelters.id],
+  }),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -131,6 +136,7 @@ export const sheltersRelations = relations(shelters, ({ many }) => ({
   dogs: many(dogs),
   appointmentRequests: many(appointmentRequests),
   conversations: many(conversations),
+  admins: many(users),
 }));
 
 export const dogsRelations = relations(dogs, ({ one, many }) => ({
