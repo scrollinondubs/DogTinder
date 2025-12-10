@@ -195,7 +195,7 @@ async function seed() {
     "https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=600&h=800&fit=crop", // Charlie - Beagle
     "https://images.unsplash.com/photo-1600804340584-c7db2eacf0bf?w=600&h=800&fit=crop", // Penny - Cocker Spaniel
     "https://images.unsplash.com/photo-1588022274642-f238f77ec193?w=600&h=800&fit=crop", // Zippy - Jack Russell
-    "https://images.unsplash.com/photo-1594922009922-d33ab95f0bbe?w=600&h=800&fit=crop", // Teddy - Labradoodle
+    "https://images.unsplash.com/photo-1615751072497-5f5169febe17?w=600&h=800&fit=crop", // Teddy - Labradoodle
     "https://images.unsplash.com/photo-1612195583950-b8fd34c87093?w=600&h=800&fit=crop", // Frankie - Dachshund
     "https://images.unsplash.com/photo-1544568100-847a948585b9?w=600&h=800&fit=crop", // Willow - Whippet
   ];
