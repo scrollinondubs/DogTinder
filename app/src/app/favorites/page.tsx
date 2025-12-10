@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, ChevronRight, Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { getAnonymousLikedDogs } from "@/lib/anonymous-swipes";
 
 interface Dog {
   id: string;
@@ -25,16 +27,41 @@ interface Dog {
 }
 
 export default function FavoritesPage() {
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
+  const isLoadingSession = status === "loading";
+
   const [likedDogs, setLikedDogs] = useState<Dog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchLikedDogs() {
       try {
-        const response = await fetch("/api/likes");
-        if (response.ok) {
-          const data = await response.json();
-          setLikedDogs(data);
+        if (isAuthenticated) {
+          // Authenticated: fetch from API
+          const response = await fetch("/api/likes");
+          if (response.ok) {
+            const data = await response.json();
+            setLikedDogs(data);
+          }
+        } else {
+          // Anonymous: get from localStorage and fetch dog details
+          const anonymousLikes = getAnonymousLikedDogs();
+
+          if (anonymousLikes.length === 0) {
+            setLikedDogs([]);
+            return;
+          }
+
+          // Fetch dog details for liked dogs
+          const dogPromises = anonymousLikes.map((like) =>
+            fetch(`/api/dogs/${like.dogId}`)
+              .then((res) => (res.ok ? res.json() : null))
+              .catch(() => null)
+          );
+
+          const dogs = await Promise.all(dogPromises);
+          setLikedDogs(dogs.filter(Boolean));
         }
       } catch (err) {
         console.error("Failed to fetch liked dogs:", err);
@@ -42,8 +69,12 @@ export default function FavoritesPage() {
         setIsLoading(false);
       }
     }
-    fetchLikedDogs();
-  }, []);
+
+    // Wait for session check before fetching
+    if (!isLoadingSession) {
+      fetchLikedDogs();
+    }
+  }, [isAuthenticated, isLoadingSession]);
 
   return (
     <div className="min-h-screen bg-white pb-20">
@@ -55,9 +86,22 @@ export default function FavoritesPage() {
         </div>
       </header>
 
+      {/* Anonymous user notice */}
+      {!isAuthenticated && !isLoadingSession && likedDogs.length > 0 && (
+        <div className="mx-4 mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800">
+            Your favorites are saved locally.
+            <Link href="/login" className="font-medium underline ml-1">
+              Sign in
+            </Link>{" "}
+            to save them permanently.
+          </p>
+        </div>
+      )}
+
       {/* Dog List */}
       <div className="px-4 py-4 space-y-3">
-        {isLoading ? (
+        {isLoading || isLoadingSession ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
             <p className="text-gray-500 mt-3">Loading favorites...</p>
@@ -69,6 +113,12 @@ export default function FavoritesPage() {
             <p className="text-gray-400 text-sm mt-1">
               Swipe right on dogs you like!
             </p>
+            <Link
+              href="/swipe"
+              className="inline-block mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+            >
+              Start Swiping
+            </Link>
           </div>
         ) : (
           likedDogs.map((dog) => (
@@ -79,16 +129,19 @@ export default function FavoritesPage() {
             >
               {/* Thumbnail */}
               <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-[#E8D5C4] flex-shrink-0">
-                <Image
-                  src={dog.imageUrl}
-                  alt={dog.name}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <DogIcon className="w-8 h-8 text-[#C4A98A] opacity-50" />
-                </div>
+                {dog.imageUrl ? (
+                  <Image
+                    src={dog.imageUrl}
+                    alt={dog.name}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <DogIcon className="w-8 h-8 text-[#C4A98A]" />
+                  </div>
+                )}
               </div>
 
               {/* Info */}
@@ -97,7 +150,9 @@ export default function FavoritesPage() {
                   {dog.name}, {dog.age} yrs
                 </h3>
                 <p className="text-gray-600 text-sm">{dog.breed}</p>
-                <p className="text-gray-400 text-xs mt-0.5">{dog.shelter.name}</p>
+                <p className="text-gray-400 text-xs mt-0.5">
+                  {dog.shelter.name}
+                </p>
               </div>
 
               {/* Arrow */}

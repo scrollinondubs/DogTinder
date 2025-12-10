@@ -1,19 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { dogs, dogImages, shelters } from "@/db/schema";
-import { auth } from "@/auth";
 
-export const GET = auth(async function GET(req) {
+// Dog details are public - no auth required
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    if (!req.auth?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Extract ID from URL path
-    const url = new URL(req.url);
-    const pathParts = url.pathname.split("/");
-    const id = pathParts[pathParts.length - 1];
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json({ error: "Dog ID required" }, { status: 400 });
@@ -87,4 +83,4 @@ export const GET = auth(async function GET(req) {
       { status: 500 }
     );
   }
-});
+}

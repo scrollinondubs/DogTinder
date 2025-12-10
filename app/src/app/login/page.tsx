@@ -1,14 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
+import {
+  getAnonymousSwipes,
+  clearAnonymousSwipes,
+  hasAnonymousSwipes,
+} from "@/lib/anonymous-swipes";
 
-export default function LoginPage() {
+async function mergeAnonymousSwipes(): Promise<void> {
+  if (!hasAnonymousSwipes()) return;
+
+  const swipes = getAnonymousSwipes();
+
+  try {
+    const response = await fetch("/api/likes/merge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ swipes }),
+    });
+
+    if (response.ok) {
+      clearAnonymousSwipes();
+    } else {
+      console.error("Failed to merge swipes:", await response.text());
+    }
+  } catch (error) {
+    console.error("Error merging swipes:", error);
+  }
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/swipe";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -29,7 +59,10 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        router.push("/swipe");
+        // Merge anonymous swipes after successful login
+        await mergeAnonymousSwipes();
+
+        router.push(callbackUrl);
         router.refresh();
       }
     } catch {
@@ -97,18 +130,40 @@ export default function LoginPage() {
       {/* Sign Up Link */}
       <p className="text-center mt-8 text-gray-500">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-primary font-medium hover:underline">
+        <Link
+          href={`/signup${callbackUrl !== "/swipe" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`}
+          className="text-primary font-medium hover:underline"
+        >
           Sign Up
         </Link>
       </p>
 
       {/* Demo Credentials */}
       <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <p className="text-xs text-gray-500 text-center mb-2">Demo credentials:</p>
+        <p className="text-xs text-gray-500 text-center mb-2">
+          Demo credentials:
+        </p>
         <p className="text-xs text-gray-600 text-center">
           alex@example.com / password123
         </p>
       </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-white">
+      <PawPrint className="w-12 h-12 text-primary mx-auto mb-4" />
+      <p className="text-gray-500">Loading...</p>
     </div>
   );
 }

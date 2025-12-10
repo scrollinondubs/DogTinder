@@ -8,17 +8,16 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnProtectedRoute =
-        nextUrl.pathname.startsWith("/swipe") ||
-        nextUrl.pathname.startsWith("/favorites") ||
-        nextUrl.pathname.startsWith("/appointments") ||
-        nextUrl.pathname.startsWith("/messages") ||
-        nextUrl.pathname.startsWith("/profile") ||
-        nextUrl.pathname.startsWith("/dog/") ||
-        nextUrl.pathname.startsWith("/appointment/");
+
+      // Routes that REQUIRE authentication (user-specific data)
+      const isStrictlyProtectedRoute =
+        nextUrl.pathname.startsWith("/appointments") || // User's appointment history
+        nextUrl.pathname.startsWith("/messages") || // Messaging requires identity
+        nextUrl.pathname.startsWith("/profile"); // User profile
 
       const isOnShelterRoute = nextUrl.pathname.startsWith("/shelter");
-      const isOnAuthRoute = nextUrl.pathname === "/login" || nextUrl.pathname === "/signup";
+      const isOnAuthRoute =
+        nextUrl.pathname === "/login" || nextUrl.pathname === "/signup";
 
       if (isOnShelterRoute) {
         // Shelter routes require SHELTER_ADMIN or ADMIN role
@@ -26,10 +25,16 @@ export const authConfig = {
         return isLoggedIn;
       }
 
-      if (isOnProtectedRoute) {
+      if (isStrictlyProtectedRoute) {
         if (isLoggedIn) return true;
         return false; // Redirect to login
       }
+
+      // These routes are now PUBLIC (anonymous browsing allowed):
+      // /swipe - main browsing
+      // /favorites - can show localStorage data for anonymous users
+      // /dog/* - dog detail pages
+      // /appointment/* - allow form interaction, block submission in UI
 
       if (isOnAuthRoute && isLoggedIn) {
         return Response.redirect(new URL("/swipe", nextUrl));

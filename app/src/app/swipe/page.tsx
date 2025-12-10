@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { X, Heart, User, Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { SwipeCard, SwipeCardHandle } from "@/components/SwipeCard";
+import {
+  getAnonymousSwipedDogIds,
+  saveAnonymousSwipe,
+} from "@/lib/anonymous-swipes";
 
 interface Dog {
   id: string;
@@ -27,6 +32,10 @@ interface Dog {
 }
 
 export default function SwipePage() {
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
+  const isLoadingSession = status === "loading";
+
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,17 +45,25 @@ export default function SwipePage() {
   const fetchDogs = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/dogs", {
+
+      let url = "/api/dogs";
+
+      // For anonymous users, pass already-swiped IDs as query param
+      if (!isAuthenticated) {
+        const swipedIds = getAnonymousSwipedDogIds();
+        if (swipedIds.length > 0) {
+          url += `?excludeDogIds=${encodeURIComponent(JSON.stringify(swipedIds))}`;
+        }
+      }
+
+      const response = await fetch(url, {
         credentials: "include",
       });
-      if (response.status === 401) {
-        // Redirect to login if not authenticated
-        window.location.href = "/login";
-        return;
-      }
+
       if (!response.ok) {
         throw new Error("Failed to fetch dogs");
       }
+
       const data = await response.json();
       setDogs(data);
       setCurrentIndex(0);
@@ -55,11 +72,14 @@ export default function SwipePage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    fetchDogs();
-  }, [fetchDogs]);
+    // Wait for session check before fetching
+    if (!isLoadingSession) {
+      fetchDogs();
+    }
+  }, [fetchDogs, isLoadingSession]);
 
   const currentDog = dogs[currentIndex];
   const nextDog = dogs[currentIndex + 1];
@@ -67,18 +87,25 @@ export default function SwipePage() {
   const handleSwipe = async (direction: "left" | "right") => {
     if (!currentDog) return;
 
-    // Save the swipe to the backend
-    try {
-      await fetch("/api/likes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dogId: currentDog.id,
-          liked: direction === "right",
-        }),
-      });
-    } catch (err) {
-      console.error("Failed to save swipe:", err);
+    const liked = direction === "right";
+
+    if (isAuthenticated) {
+      // Authenticated: save to database
+      try {
+        await fetch("/api/likes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            dogId: currentDog.id,
+            liked,
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to save swipe:", err);
+      }
+    } else {
+      // Anonymous: save to localStorage
+      saveAnonymousSwipe(currentDog.id, liked);
     }
 
     // Move to next card
@@ -92,6 +119,39 @@ export default function SwipePage() {
 
   return (
     <div className="min-h-screen bg-white pb-20">
+      {/* Anonymous user banner */}
+      {!isAuthenticated && !isLoadingSession && (
+        <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 text-center">
+          <p className="text-sm text-primary">
+            <Link href="/login" className="font-medium underline">
+              Sign in
+            </Link>{" "}
+            to save your favorites and book appointments
+          </p>
+          <p className="text-sm text-primary mt-1">
+            View the{" "}
+            <a
+              href="https://vibecodelisboa.com/courses/claude-code-101"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium underline"
+            >
+              course
+            </a>{" "}
+            used to build this project and check the{" "}
+            <a
+              href="https://github.com/scrollinondubs/dogTinder"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium underline"
+            >
+              github repo
+            </a>
+            .
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white px-4 h-14 flex items-center justify-between border-b border-gray-100">
         <Link href="/swipe" className="flex items-center">
@@ -105,7 +165,7 @@ export default function SwipePage() {
           />
         </Link>
         <Link
-          href="/profile"
+          href={isAuthenticated ? "/profile" : "/login"}
           className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
         >
           <User className="w-5 h-5 text-gray-600" />
@@ -114,7 +174,7 @@ export default function SwipePage() {
 
       {/* Swipe Card */}
       <div className="px-4 pt-4">
-        {isLoading ? (
+        {isLoading || isLoadingSession ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-10 h-10 text-primary animate-spin" />
             <p className="text-gray-500 mt-4">Finding dogs near you...</p>
@@ -148,7 +208,13 @@ export default function SwipePage() {
         ) : (
           <>
             {/* Card Stack Container - height needs to fit image (3:4 aspect) + info section (~130px) */}
-            <div className="relative" style={{ height: "calc((100vw - 32px) * 4 / 3 + 130px)", maxHeight: "680px" }}>
+            <div
+              className="relative"
+              style={{
+                height: "calc((100vw - 32px) * 4 / 3 + 130px)",
+                maxHeight: "680px",
+              }}
+            >
               {/* Next card (background) - rendered first, behind the current card */}
               {nextDog && (
                 <SwipeCard

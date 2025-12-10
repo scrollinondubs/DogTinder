@@ -1,10 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Loader2,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/Button";
 import { Textarea } from "@/components/Textarea";
 import { cn } from "@/lib/utils";
@@ -30,12 +38,49 @@ const timeSlots = [
   "5:00 PM",
 ];
 
+// sessionStorage keys for preserving appointment draft
+const APPOINTMENT_DRAFT_KEY = "dog_tinder_appointment_draft";
+
+interface AppointmentDraft {
+  dogId: string;
+  selectedDate: number;
+  currentMonth: string;
+  selectedTime: string;
+  message: string;
+}
+
+function saveDraft(draft: AppointmentDraft) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(APPOINTMENT_DRAFT_KEY, JSON.stringify(draft));
+}
+
+function getDraft(dogId: string): Partial<AppointmentDraft> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(APPOINTMENT_DRAFT_KEY);
+    if (!raw) return null;
+    const draft = JSON.parse(raw) as AppointmentDraft;
+    return draft.dogId === dogId ? draft : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearDraft() {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(APPOINTMENT_DRAFT_KEY);
+}
+
 function formatDateToISO(month: Date, day: number): string {
   const date = new Date(month.getFullYear(), month.getMonth(), day);
   return date.toISOString().split("T")[0];
 }
 
 export default function AppointmentPage() {
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
+  const isLoadingSession = status === "loading";
+
   const params = useParams();
   const dogId = params.dogId as string;
   const router = useRouter();
@@ -53,6 +98,31 @@ export default function AppointmentPage() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  // Restore draft on mount
+  useEffect(() => {
+    const draft = getDraft(dogId);
+    if (draft) {
+      if (draft.selectedDate) setSelectedDate(draft.selectedDate);
+      if (draft.currentMonth) setCurrentMonth(new Date(draft.currentMonth));
+      if (draft.selectedTime) setSelectedTime(draft.selectedTime);
+      if (draft.message) setMessage(draft.message);
+    }
+  }, [dogId]);
+
+  // Save draft when form changes (for anonymous users)
+  useEffect(() => {
+    if (!isAuthenticated && selectedDate && selectedTime) {
+      saveDraft({
+        dogId,
+        selectedDate,
+        currentMonth: currentMonth.toISOString(),
+        selectedTime,
+        message,
+      });
+    }
+  }, [isAuthenticated, dogId, selectedDate, currentMonth, selectedTime, message]);
 
   // Fetch dog data
   useEffect(() => {
@@ -63,7 +133,7 @@ export default function AppointmentPage() {
           throw new Error("Dog not found");
         }
         const data = await response.json();
-        setDog(data); // API returns dog directly, not wrapped
+        setDog(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load dog");
       } finally {
@@ -102,6 +172,13 @@ export default function AppointmentPage() {
   const handleConfirm = async () => {
     if (!selectedDate || !selectedTime) return;
 
+    // Check authentication
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    // Authenticated submission
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -123,6 +200,8 @@ export default function AppointmentPage() {
         throw new Error(data.error || "Failed to create appointment");
       }
 
+      // Clear draft on success
+      clearDraft();
       router.push(`/appointment/${dogId}/confirmation?id=${data.appointment.id}`);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong");
@@ -131,7 +210,7 @@ export default function AppointmentPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingSession) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -198,7 +277,9 @@ export default function AppointmentPage() {
 
         {/* Calendar */}
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Select Date</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">
+            Select Date
+          </h2>
           <div className="border border-gray-200 rounded-xl p-4">
             {/* Month Navigation */}
             <div className="flex items-center justify-between mb-4">
@@ -258,8 +339,8 @@ export default function AppointmentPage() {
                       isSelected
                         ? "bg-primary text-white"
                         : isPast
-                        ? "text-gray-300 cursor-not-allowed"
-                        : "text-gray-600 hover:bg-gray-100"
+                          ? "text-gray-300 cursor-not-allowed"
+                          : "text-gray-600 hover:bg-gray-100"
                     )}
                   >
                     {day}
@@ -272,7 +353,9 @@ export default function AppointmentPage() {
 
         {/* Time Slots */}
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Select Time</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">
+            Select Time
+          </h2>
           <div className="grid grid-cols-3 gap-2">
             {timeSlots.map((time) => (
               <button
@@ -329,11 +412,46 @@ export default function AppointmentPage() {
               <Loader2 className="w-4 h-4 animate-spin" />
               Submitting...
             </span>
+          ) : !isAuthenticated ? (
+            "Sign in to Confirm"
           ) : (
             "Confirm Appointment"
           )}
         </Button>
       </div>
+
+      {/* Login Prompt Modal */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative">
+            <button
+              onClick={() => setShowLoginPrompt(false)}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+            >
+              <X className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              Sign in Required
+            </h3>
+            <p className="text-gray-500 mb-6">
+              Please sign in to complete your appointment booking. Your
+              selection will be saved.
+            </p>
+
+            <div className="space-y-3">
+              <Link href={`/login?callbackUrl=/appointment/${dogId}`}>
+                <Button fullWidth>Sign In</Button>
+              </Link>
+              <Link href={`/signup?callbackUrl=/appointment/${dogId}`}>
+                <Button variant="outline" fullWidth>
+                  Create Account
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,6 +5,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Dog Tinder - Find Your Perfect Pup",
   description: "Swipe to find and adopt your perfect furry companion",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

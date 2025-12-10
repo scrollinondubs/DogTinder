@@ -1,24 +1,42 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { eq, and, notInArray } from "drizzle-orm";
 import { db } from "@/db";
 import { dogs, dogImages, shelters, likes } from "@/db/schema";
 import { auth } from "@/auth";
 
-export const GET = auth(async function GET(req) {
+export async function GET(req: NextRequest) {
   try {
-    if (!req.auth?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await auth();
+    const userId = session?.user?.id;
+
+    let swipedDogIds: string[] = [];
+
+    if (userId) {
+      // Authenticated: get swiped dogs from database
+      const swipedDogs = await db
+        .select({ dogId: likes.dogId })
+        .from(likes)
+        .where(eq(likes.userId, userId));
+      swipedDogIds = swipedDogs.map((l) => l.dogId);
+    } else {
+      // Anonymous: get excluded IDs from query param
+      const excludeParam = req.nextUrl.searchParams.get("excludeDogIds");
+      if (excludeParam) {
+        try {
+          const parsed = JSON.parse(excludeParam);
+          // Validate it's an array of strings
+          if (
+            Array.isArray(parsed) &&
+            parsed.every((id) => typeof id === "string")
+          ) {
+            // Limit to prevent abuse
+            swipedDogIds = parsed.slice(0, 500);
+          }
+        } catch {
+          // Invalid JSON, ignore
+        }
+      }
     }
-
-    const userId = req.auth.user.id;
-
-    // Get IDs of dogs the user has already swiped on
-    const swipedDogs = await db
-      .select({ dogId: likes.dogId })
-      .from(likes)
-      .where(eq(likes.userId, userId));
-
-    const swipedDogIds = swipedDogs.map((l) => l.dogId);
 
     // Get available dogs that haven't been swiped
     const availableDogs = await db
@@ -51,15 +69,16 @@ export const GET = auth(async function GET(req) {
     // Get primary images for these dogs
     const dogIds = availableDogs.map((d) => d.id);
 
-    const images = dogIds.length > 0
-      ? await db
-          .select({
-            dogId: dogImages.dogId,
-            url: dogImages.url,
-          })
-          .from(dogImages)
-          .where(eq(dogImages.isPrimary, true))
-      : [];
+    const images =
+      dogIds.length > 0
+        ? await db
+            .select({
+              dogId: dogImages.dogId,
+              url: dogImages.url,
+            })
+            .from(dogImages)
+            .where(eq(dogImages.isPrimary, true))
+        : [];
 
     const imageMap = new Map(images.map((img) => [img.dogId, img.url]));
 
@@ -90,4 +109,4 @@ export const GET = auth(async function GET(req) {
       { status: 500 }
     );
   }
-});
+}

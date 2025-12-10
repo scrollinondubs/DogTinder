@@ -131,6 +131,56 @@ async function seed() {
       description: "Charlie is a curious and friendly Beagle with an excellent nose! He loves sniffing adventures and makes friends everywhere he goes.",
       status: "available" as const,
     },
+    {
+      shelterId: shelter1.id,
+      name: "Penny",
+      breed: "Cocker Spaniel",
+      age: 3,
+      gender: "Female" as const,
+      size: "Medium" as const,
+      description: "Penny is a gorgeous Cocker Spaniel with the silkiest ears you've ever seen! She's gentle, affectionate, and loves nothing more than curling up on the couch after a good play session.",
+      status: "available" as const,
+    },
+    {
+      shelterId: shelter3.id,
+      name: "Zippy",
+      breed: "Jack Russell Terrier",
+      age: 2,
+      gender: "Male" as const,
+      size: "Small" as const,
+      description: "Zippy lives up to his name! This energetic Jack Russell is smart as a whip and always ready for action. He needs an active family who loves outdoor adventures.",
+      status: "available" as const,
+    },
+    {
+      shelterId: shelter2.id,
+      name: "Teddy",
+      breed: "Labradoodle",
+      age: 1,
+      gender: "Male" as const,
+      size: "Large" as const,
+      description: "Teddy is a fluffy, hypoallergenic Labradoodle who thinks he's a lap dog! He's incredibly friendly, great with kids, and his goofy personality will keep you laughing all day.",
+      status: "available" as const,
+    },
+    {
+      shelterId: shelter1.id,
+      name: "Frankie",
+      breed: "Dachshund",
+      age: 5,
+      gender: "Male" as const,
+      size: "Small" as const,
+      description: "Frankie is a charming little sausage dog with a big personality! Despite his short legs, he's got endless courage and loves burrowing under blankets for cozy naps.",
+      status: "available" as const,
+    },
+    {
+      shelterId: shelter3.id,
+      name: "Willow",
+      breed: "Whippet",
+      age: 4,
+      gender: "Female" as const,
+      size: "Medium" as const,
+      description: "Willow is an elegant Whippet with the grace of a gazelle. She loves short bursts of zooming followed by long hours of snuggling. Perfect for apartment living!",
+      status: "available" as const,
+    },
   ];
 
   const insertedDogs = await db.insert(dogs).values(dogsData).returning();
@@ -138,11 +188,16 @@ async function seed() {
 
   // Create dog images
   const dogImageUrls = [
-    "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=800&fit=crop",
-    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=800&fit=crop",
-    "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=600&h=800&fit=crop",
-    "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=800&fit=crop",
-    "https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=600&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=800&fit=crop", // Max - Golden Retriever
+    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=800&fit=crop", // Bella - Labrador Mix
+    "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=600&h=800&fit=crop", // Rocky - German Shepherd
+    "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=800&fit=crop", // Luna - Husky
+    "https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=600&h=800&fit=crop", // Charlie - Beagle
+    "https://images.unsplash.com/photo-1600804340584-c7db2eacf0bf?w=600&h=800&fit=crop", // Penny - Cocker Spaniel
+    "https://images.unsplash.com/photo-1588022274642-f238f77ec193?w=600&h=800&fit=crop", // Zippy - Jack Russell
+    "https://images.unsplash.com/photo-1594922009922-d33ab95f0bbe?w=600&h=800&fit=crop", // Teddy - Labradoodle
+    "https://images.unsplash.com/photo-1612195583950-b8fd34c87093?w=600&h=800&fit=crop", // Frankie - Dachshund
+    "https://images.unsplash.com/photo-1544568100-847a948585b9?w=600&h=800&fit=crop", // Willow - Whippet
   ];
 
   for (let i = 0; i < insertedDogs.length; i++) {
