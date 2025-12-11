@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { X, Heart, User, Loader2 } from "lucide-react";
+import { User, Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
-import { SwipeCard, SwipeCardHandle } from "@/components/SwipeCard";
+import { SwipeCard } from "@/components/SwipeCard";
 import {
   getAnonymousSwipedDogIds,
   saveAnonymousSwipe,
@@ -40,7 +40,6 @@ export default function SwipePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const cardRef = useRef<SwipeCardHandle>(null);
 
   const fetchDogs = useCallback(async () => {
     try {
@@ -110,11 +109,6 @@ export default function SwipePage() {
 
     // Move to next card
     setCurrentIndex((prev) => prev + 1);
-  };
-
-  // Button handlers that trigger programmatic swipes
-  const handleButtonSwipe = (direction: "left" | "right") => {
-    cardRef.current?.swipe(direction);
   };
 
   return (
@@ -229,7 +223,6 @@ export default function SwipePage() {
               <AnimatePresence mode="wait">
                 <SwipeCard
                   key={currentDog.id}
-                  ref={cardRef}
                   dog={currentDog}
                   onSwipe={handleSwipe}
                   active={true}
@@ -237,21 +230,6 @@ export default function SwipePage() {
               </AnimatePresence>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-center gap-8 mt-4">
-              <button
-                onClick={() => handleButtonSwipe("left")}
-                className="w-16 h-16 rounded-full border-2 border-red-300 flex items-center justify-center text-red-400 hover:bg-red-50 transition-colors"
-              >
-                <X className="w-8 h-8" />
-              </button>
-              <button
-                onClick={() => handleButtonSwipe("right")}
-                className="w-16 h-16 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 hover:bg-green-50 transition-colors"
-              >
-                <Heart className="w-8 h-8" />
-              </button>
-            </div>
           </>
         )}
       </div>
